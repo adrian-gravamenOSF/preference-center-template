@@ -1,0 +1,4 @@
+Name,Value
+Password,OSF_PWD
+Salt,OSF_SALT
+InitVector,OSF_IV

@@ -1,0 +1,714 @@
+/* =============== Base Style =============== */
+
+*, *:before, *:after {
+    -moz-box-sizing: border-box;
+    -webkit-box-sizing: border-box;
+    box-sizing: border-box;
+}
+html, body {
+    min-height: 100%;
+    margin: 0;
+    padding: 0;
+}
+body {
+    color: #666;
+    background-color: #fff;
+    font-size: 14px;
+    font-family: Roboto, Arial, Helvetica, sans-serif;
+    font-weight: 300;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    line-height: 1.5;
+}
+.container {
+    float: none;
+    width: 100%;
+    max-width: 650px;
+    margin: 0 auto;
+}
+.page-center {
+    float: none;
+    width: 100%;
+    max-width: 1040px;
+    margin: 0 auto;
+}
+.clearfix:before, .clearfix:after {
+    content: '';
+    clear: both;
+    display: block;
+}
+img {
+    max-width: 100%;
+    height: auto;
+}
+
+/* add any custom brand fonts here */
+
+/* =============== Header Styling ============== */
+
+.header-container {
+    background-color: #fff;
+    padding: 18px 15px;
+    max-height: 90px;
+}
+
+.logo-wrapper {
+    display: inline-block;
+}
+
+.logo-wrapper img {
+    max-width: 600px;
+}
+
+/* ============ Body Styling ================= */
+
+.body-container {
+    padding: 50px 15px 100px;
+}
+.body-title-wrapper h1 {
+    font-family: Roboto, Arial, Helvetica, sans-serif;
+    font-style: normal;
+    font-weight: 800;
+    font-size: 56px;
+    line-height: 1;
+    margin: 0 0 40px 0;
+    color: #0e3963;
+    text-align: center;
+    padding: 20px 0;
+}
+.body-title-wrapper p {
+    margin: 0;
+    font-family: Roboto, Arial, Helvetica, sans-serif;
+    font-style: normal;
+    font-weight: 300;
+    font-size: 18px;
+    line-height: 1.5;
+    text-align: center;
+    color: #5F5F73;
+    padding-bottom: 30px;
+}
+.form-wrapper {
+    background: #FFFFFF;
+}
+
+.form-block.title {
+    padding-bottom: 20px;
+    padding-top: 50px;
+}
+
+.form-title .form-title-name {
+    max-width: calc(100% - 40px);
+    display: inline-block;
+    vertical-align: top;
+}
+.form-title-name p {
+    margin: 0;
+    font-family: Roboto, Arial, Helvetica, sans-serif;
+    font-style: normal;
+    font-weight: 600;
+    font-size: 16px;
+    line-height: 1.18;
+    color: #0e3963;
+}
+.form-title-name .sub {
+    font-family: Roboto, Arial, Helvetica, sans-serif;
+    font-style: normal;
+    font-weight: 300;
+    font-size: 14px;
+    line-height: 1.18;
+    color: #5F5F73;
+    padding-top: 6px;
+}
+
+.form-block {
+    padding-top: 15px;
+    padding-bottom: 15px;
+}
+
+.form-block.hidden {
+    display: none;
+}
+
+.form-block input {
+    font-family: Roboto, Arial, Helvetica, sans-serif;
+    font-style: normal;
+    font-weight: 300;
+    font-size: 16px;
+    line-height: 1.18;
+    color: #0e3963;
+    background: #ffffff;
+    border: 1px solid #C0C0C0;
+    box-sizing: border-box;
+    display: block;
+    width: 100%;
+    padding: 16px 15px;
+    max-height: 52px;
+    margin: 0;
+    border-radius: 4px;
+}
+.form-block .error {
+    color: red;
+    font-family: Roboto, Arial, Helvetica, sans-serif;
+    font-style: normal;
+    font-weight: 300;
+    padding: 4px 0 0;
+    display: block;
+}
+
+input:placeholder {
+color: #CACACA;
+opacity: 1;
+}
+input::placeholder {
+color: #CACACA;
+opacity: 1;
+}
+
+.form-block label {
+    display: block;
+}
+.form-block label.radio {
+    position: relative;
+    cursor: pointer;
+}
+.form-block label .title {
+    font-family: Roboto, Arial, Helvetica, sans-serif;
+    font-style: normal;
+    font-weight: 400;
+    font-size: 16px;
+    line-height: 1.18;
+    color: #0e3963;
+    display: block;
+    padding-left: 35px;
+}
+.form-block label .title span {
+    display: block;
+}
+.form-block label .title .sub {
+    font-family: Roboto, Arial, Helvetica, sans-serif;
+    font-style: normal;
+    font-weight: 300;
+    font-size: 14px;
+    line-height: 1.21;
+    color: #5F5F73;
+    padding-top: 8px;
+}
+.form-block label input {
+    position: absolute;
+    opacity: 0;
+    cursor: pointer;
+    height: 0;
+    width: 0;
+}
+
+.form-block fieldset.dob {
+    border: none;
+    padding: 0;
+}
+
+.form-block fieldset.dob legend {
+    padding: 0 0 4px 0;
+}
+
+.form-block fieldset.dob .date-wrapper {
+    display: inline-block;;
+}
+
+.form-block fieldset.dob .date-wrapper label {
+    font-size: smaller;
+}
+
+.form-block fieldset.dob .date-wrapper input {
+    min-width: 60px;
+}
+
+.form-block input#postcode {
+    display: inline-block;
+    width: auto;
+    min-width: 120px;
+}
+
+.form-block input:read-only {
+ color: #aaa;
+}
+
+.form-block .radio .checkmark {
+    position: absolute;
+    top: 0;
+    left: 0;
+    height: 20px;
+    width: 20px;
+    background: #FFFFFF;
+    border: 1px solid #A1A1A1;
+    box-sizing: border-box;
+    border-radius: 100%;
+}
+.form-block .radio input:checked ~ .checkmark {
+    border: 1px solid #0047AB;
+}
+.form-block .radio .checkmark:after {
+    content: "";
+    position: absolute;
+    display: none;
+}
+.form-block .radio .checkmark:after {
+    content: '';
+    background-color: #0047AB;
+    width: 14px;
+    height: 14px;
+    border-radius: 100%;
+    position: absolute;
+    top: 2px;
+    left: 2px;
+}
+.form-block .radio input:checked ~ .checkmark:after {
+    display: block;
+}
+.form-block label.checkbox {
+    position: relative;
+    cursor: pointer;
+}
+.form-block .checkbox .checkmark {
+    position: absolute;
+    top: 0;
+    height: 20px;
+    width: 20px;
+    background: #FFFFFF;
+    border: 1px solid #C0C0C0;
+    box-sizing: border-box;
+    border-radius: 3px;
+}
+ 
+.form-block .checkbox .checkmark{ left: 0;}    
+.form-block-2 .checkbox .checkmark{ right: 0;}     
+ 
+.form-block .checkbox input:checked ~ .checkmark, .form-block-2 .checkbox input:checked ~ .checkmark {
+    border: 1px solid #0047AB;
+    background: #0047AB;
+}
+.form-block .checkbox .checkmark:after, .form-block-2 .checkbox .checkmark:after {
+    content: "";
+    position: absolute;
+    display: none;
+}
+.form-block .checkbox .checkmark:after, .form-block-2 .checkbox .checkmark:after {
+    left: 6px;
+    top: 1px;
+    width: 6px;
+    height: 13px;
+    border: solid #fff;
+    border-width: 0 2px 2px 0;
+    -webkit-transform: rotate(45deg);
+    -ms-transform: rotate(45deg);
+    transform: rotate(45deg);
+}
+.form-block .checkbox input:checked ~ .checkmark:after, .form-block-2 .checkbox input:checked ~ .checkmark:after {
+    display: block;
+}
+
+.form-block.button {
+    text-align: center;
+}
+
+.form-block.button.unsubscribe input {
+    background: #e3e3e3;
+    border-radius: 8px;
+    border: none;
+    font-family: Roboto, Arial, Helvetica, sans-serif;
+    font-style: normal;
+    font-weight: 600;
+    font-size: 14px;
+    line-height: 1.21;
+    text-align: center;
+    max-height: 45px;
+    padding: 15px 15px;
+    cursor: pointer;
+    max-width: 246px;
+    display: inline-block;
+    text-transform: uppercase;
+    color: #0e3963;
+    -webkit-appearance: none;
+}
+.form-block.button.preferences input {
+    background: #0e3963;
+    border-radius: 8px;
+    border: none;
+    font-family: Roboto, Arial, Helvetica, sans-serif;
+    font-style: normal;
+    font-weight: 600;
+    font-size: 14px;
+    line-height: 1.21;
+    text-align: center;
+    max-height: 45px;
+    padding: 15px 15px;
+    cursor: pointer;
+    max-width: 246px;
+    display: inline-block;
+    text-transform: uppercase;
+    color: #fff;
+    -webkit-appearance: none;
+}
+
+.section-container { 
+    padding: 0px 20px 20px 20px; 
+    width:100%; 
+    max-width: 650px; 
+    margin: 0 auto; 
+   
+}
+
+.bg-light{
+    background-color:#F7F7F7;
+}
+.form-block-radio {
+    display: inline-block;
+    margin-right: 5px; /* Adjust the margin as needed */
+    margin-left: 5px; /* Adjust the margin as needed */
+}
+
+/* ================= Footer Styling ================= */
+
+.footer-container {
+    background-color: #0e3963;
+    max-height: 72px;
+    padding: 20px 15px;
+}
+.footer-links.left {
+    float: left;
+}
+.footer-links.right {
+    float: right;
+}
+.footer-links ul {
+    margin: 0;
+    padding: 6px 0;
+    list-style: none;
+}
+.footer-links ul li {
+    display: inline-block;
+}
+.footer-links.right ul li:first-child {
+    padding-right: 20px;
+}
+.footer-links ul li a {
+    color: #fff;
+    text-decoration: none;
+    font-family: Roboto;
+    font-style: normal;
+    font-weight: 400;
+    font-size: .8125rem;
+    line-height: 1.16;
+}
+/* =============== Thank You Page ===================== */
+
+
+.body-container.thank-you {
+    min-height: calc(100vh - 160px);
+    display: -webkit-box;
+    display: -ms-flexbox;
+    display: flex;
+    -webkit-box-align: center;
+    -ms-flex-align: center;
+    align-items: center;
+    -webkit-box-pack: center;
+    -ms-flex-pack: center;
+    justify-content: center;
+}
+.thank-you-wrapper {
+    background: #FFFFFF;
+    border-radius: 8px;
+    padding: 40px 35px;
+}
+.thank-you-wrapper h1 {
+    font-family: Roboto, Arial, Helvetica, sans-serif;
+    font-style: normal;
+    font-weight: 800;
+    font-size: 43px;
+    line-height: 1;
+    color: #0e3963;
+    text-align: center;
+    margin: 0 0 40px 0;
+    padding: 0 0 20px;
+}
+.thank-you-wrapper p {
+    font-family: Roboto, Arial, Helvetica, sans-serif;
+    font-style: normal;
+    font-weight: 300;
+    font-size: 18px;
+    line-height: 1.5;
+    text-align: center;
+    color: #5F5F73;
+    margin: 0;
+    padding-bottom: 50px;
+}
+.thank-you-wrapper a {
+    padding: 15px 20px;
+    display: block;
+    text-decoration: none;
+    font-family: Roboto, Arial, Helvetica, sans-serif;
+    font-style: normal;
+    font-weight: 600;
+    font-size: 14px;
+    line-height: 1.21;
+    color: #fff;
+    background: #0e3963;
+    border-radius: 8px;
+    max-height: 45px;
+    max-width: 246px;
+    text-align: center;
+    text-transform: uppercase;
+    width: 100%;
+    margin: 0 auto;
+    max-width: 300px;
+}
+/* ============= Error Page ===================== */
+
+.body-container.error {
+    min-height: calc(100vh - 160px);
+    display: -webkit-box;
+    display: -ms-flexbox;
+    display: flex;
+    -webkit-box-align: center;
+    -ms-flex-align: center;
+    align-items: center;
+    -webkit-box-pack: center;
+    -ms-flex-pack: center;
+    justify-content: center;
+}
+.error-wrapper {
+    background: #FFFFFF;
+    border-radius: 8px;
+    padding: 40px 35px;
+}
+.error-wrapper h1 {
+    font-family: Roboto, Arial, Helvetica, sans-serif;
+    font-style: normal;
+    font-weight: 800;
+    font-size: 43px;
+    line-height: 1;
+    color: #0e3963;
+    text-align: center;
+    margin: 0;
+    padding: 0 0 20px;
+}
+.error-wrapper p {
+    font-family: Roboto, Arial, Helvetica, sans-serif;
+    font-style: normal;
+    font-weight: 300;
+    font-size: 18px;
+    line-height: 1.5;
+    text-align: center;
+    color: #5F5F73;
+    margin: 0;
+    padding-bottom: 50px;
+}
+.error-wrapper p span {
+    display: block;
+}
+.error-wrapper a {
+    padding: 15px 20px;
+    display: block;
+    text-decoration: none;
+    font-family: Roboto, Arial, Helvetica, sans-serif;
+    font-style: normal;
+    font-weight: 600;
+    font-size: 14px;
+    line-height: 1.21;
+    color: #fff;
+    background: #0e3963;
+    border-radius: 8px;
+    max-height: 45px;
+    max-width: 246px;
+    text-align: center;
+    text-transform: uppercase;
+    width: 100%;
+    margin: 0 auto;
+    max-width: 282px;
+}
+/* ======================= Unsubscribe Page ===================== */
+
+.body-container.unsubscribe {
+    min-height: calc(100vh - 160px);
+    display: -webkit-box;
+    display: -ms-flexbox;
+    display: flex;
+    -webkit-box-align: center;
+    -ms-flex-align: center;
+    align-items: center;
+    -webkit-box-pack: center;
+    -ms-flex-pack: center;
+    justify-content: center;
+}
+.unsubscribe-wrapper {
+    background: #FFFFFF;
+    border-radius: 8px;
+    padding: 40px 35px;
+}
+.unsubscribe-wrapper h1 {
+    font-family: Roboto, Arial, Helvetica, sans-serif;
+    font-style: normal;
+    font-weight: 800;
+    font-size: 43px;
+    line-height: 1;
+    color: #0e3963;
+    text-align: center;
+    margin: 0;
+    padding: 0 0 20px;
+}
+.unsubscribe-wrapper p {
+    font-family: Roboto, Arial, Helvetica, sans-serif;
+    font-style: normal;
+    font-weight: 300;
+    font-size: 18px;
+    line-height: 1.5;
+    text-align: center;
+    color: #5F5F73;
+    margin: 0;
+    padding-bottom: 50px;
+}
+.unsubscribe-wrapper a {
+    padding: 15px 20px;
+    display: block;
+    text-decoration: none;
+    font-family: Roboto, Arial, Helvetica, sans-serif;
+    font-style: normal;
+    font-weight: 600;
+    font-size: 14px;
+    line-height: 1.21;
+    color: #fff;
+    background: #0e3963;
+    border-radius: 8px;
+    max-height: 45px;
+    max-width: 300px;
+    text-align: center;
+    text-transform: uppercase;
+    width: 100%;
+    margin: 0 auto;
+}
+
+/* ======================== Media Queries ========================== */
+
+@media only screen and (max-width: 767px) {
+.body-container {
+    padding: 30px 15px;
+}
+.body-title-wrapper h1 {
+    font-size: 32px;
+    line-height: 1.18;
+}
+.form-title-name .sub {
+    font-size: 14px;
+    line-height: 1.21;
+}
+.body-title-wrapper p {
+    font-size: 14px;
+    line-height: 1.85;
+}
+.form-wrapper {
+    margin: 0;
+    padding: 20px 0 10px;
+}
+
+.section-container{
+    margin-top:30px ; 
+    padding: 0px 20px 30px 20px; 
+    width:100%; 
+    max-width: 650px;
+    margin: 0 auto; 
+}
+
+.form-block.title {
+    padding-top: 30px;;
+}
+
+.footer-links.left, .footer-links.right {
+    float: none;
+    clear: both;
+}
+.footer-links ul {
+    margin: 0;
+    padding: 0px 0;
+    list-style: none;
+}
+.footer-links.right ul li:first-child {
+    padding-right: 0;
+}
+.footer-links ul li {
+    display: block;
+    text-align: center;
+    padding-bottom: 0;
+    padding: .15rem;
+}
+.footer-links.left ul li {
+    display: block;
+    text-align: center;
+    padding-bottom: 0;
+    padding: 0;
+}
+.footer-links ul li a {
+    font-weight: 400;
+    font-size: 13px;
+}
+.footer-links.left {
+    padding-top: 10px;
+}
+.footer-container {
+    padding: 1.5rem 15px;
+    max-height: 134.4px;
+}
+/* ======== thank you ============*/
+
+
+.body-container.thank-you {
+    min-height: calc(100vh - 224px);
+}
+.thank-you-wrapper h1 {
+    font-size: 24px;
+}
+.thank-you-wrapper {
+    padding: 40px 20px;
+}
+.thank-you-wrapper p {
+    font-size: 16px;
+}
+/* ======== error ============*/
+
+
+.body-container.error {
+    min-height: calc(100vh - 224px);
+}
+.error-wrapper h1 {
+    font-size: 24px;
+}
+.error-wrapper {
+    padding: 40px 20px;
+}
+.error-wrapper p {
+    font-size: 16px;
+}
+/* ======== unsubscribe ============*/
+
+
+.body-container.unsubscribe {
+    min-height: calc(100vh - 224px);
+}
+.unsubscribe-wrapper h1 {
+    font-size: 24px;
+}
+.unsubscribe-wrapper {
+    padding: 40px 20px;
+}
+.unsubscribe-wrapper p {
+    font-size: 16px;
+}
+}
+
+@media only screen and (max-width: 480px) {
+.body-title-wrapper p br {
+    display: none;
+}
+
+.page-center {
+    text-align: center;
+}
+}

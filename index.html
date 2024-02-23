@@ -1,0 +1,444 @@
+%%[
+
+/* Look up relevant page assets and DEs */
+SET @pageStyles = LookUp('Preference_Centre_Assets', 'Id', 'Asset', 'CSS')
+SET @pageScript = LookUp('Preference_Centre_Assets', 'Id', 'Asset', 'JS')
+SET @csp = LookUp('Preference_Centre_Assets', 'Id', 'Asset', 'CSP')
+SET @errorPage = LookUp('Preference_Centre_Assets', 'Id', 'Asset', 'ErrorPage')
+SET @processingPage = LookUp('Preference_Centre_Assets', 'Id', 'Asset', 'PreferenceProcessing')
+
+SET @SubscriberDE = LookUp('Preference_Centre_Assets', 'Id', 'Asset', 'SubscriberDE')
+
+/* look up values in DE and decrypt token */
+set @password = LookUp('Preference_Centre_Creds', 'Value', 'Name', 'Password')
+set @salt = LookUp('Preference_Centre_Creds', 'Value', 'Name', 'Salt')
+set @initVector = LookUp('Preference_Centre_Creds', 'Value', 'Name', 'InitVector')
+
+SET @encAES = RequestParameter('token')
+
+IF EMPTY(@encAES) THEN
+Redirect(CloudPagesURL(@errorPage, 'msg', 'Subscriber not found.'))
+ENDIF
+
+SET @padding = Subtract(4,Mod(Length(@encAES),4))
+SET @encrypted = @encAES
+
+IF @padding < 4 THEN FOR @i=1 to @padding DO SET @encrypted=Concat(@encrypted,"=")
+  NEXT @i 
+ENDIF
+    
+    SET @decrypted = DecryptSymmetric(Base64Decode(@encrypted),"AES",@password, @null, @salt, @null, @initVector) 
+    /* set subscriber key as decrypted token */ 
+    SET @sk=@decrypted 
+    SET @rows=LookupRows(@SubscriberDE, 'ContactKey' , @sk) 
+    IF ROWCOUNT(@rows)==0 THEN Redirect(CloudPagesURL(@errorPage, 'msg' , 'Subscriber not found.' )) 
+    ENDIF 
+    IF ROWCOUNT(@rows)> 0 THEN
+    SET @DataRow = Row(@rows,1)
+
+    /* Retreive and set customer details key*/ 
+    SET @FirstName = Field(@DataRow,'FirstName')
+    SET @LastName = Field(@DataRow,'LastName')
+    SET @EmailAddress = Field(@DataRow,'EmailAddress')
+    SET @MobilePhone = Field(@DataRow,'MobilePhone')
+
+    /* Retrieve and set preferences from Master_DE */
+    SET @HasOptedOutOfEmail = Field(@DataRow,'HasOptedOutOfEmail')
+    SET @NoSMS = Field(@DataRow,'NO_SMS__c')
+    SET @PrefNewsletter = Field(@DataRow,'PrefNewsletter')
+    SET @PrefStudies = Field(@DataRow,'PrefStudies')
+    SET @PrefFeaturedContent = Field(@DataRow,'PrefFeaturedContent')
+    SET @PrefProductAnnouncements = Field(@DataRow,'PrefProductAnnouncements')
+    SET @PrefEvents = Field(@DataRow,'PrefEvents')
+    SET @PrefDigestNews = Field(@DataRow,'PrefDigestNews')
+    SET @BreakDays = Field(@DataRow, 'BreakDays')
+    SET @Frequency = Field(@DataRow, 'Frequency')
+    
+
+    ENDIF
+
+    ]%%
+
+    <!DOCTYPE html>
+
+    <!-- CSP settings content block -->
+    %%=ContentBlockById(@csp)=%%
+
+    <html>
+
+    <head>
+        <title>Preference Centre
+        </title>
+        <!-- PC Styles using reference DE w decrypt -->
+        <link rel="stylesheet" href="%%=CLOUDPAGESURL(@pageStyles)=%%">
+        <link rel="icon" href="/favicon.ico" sizes="32x32" />
+        <link
+            href="https://fonts.googleapis.com/css?family=Roboto:100,100i,300,300i,400,400i,500,500i,700,700i,900,900i&display=swap"
+            rel="stylesheet">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <style>
+            .pad-t-50 {
+                padding-top: 50px;
+            }
+        </style>
+
+        %%[IF RequestParameter('unsubscribe') == 1 THEN]%%
+        <script>
+            location.href = '#unsubscribe';
+        </script>
+        %%[ELSEIF RequestParameter('preferences') == 1 THEN]%%
+        <script>
+            location.href = '#preferences';
+        </script>
+        %%[ENDIF]%%
+
+    </head>
+
+    <body>
+        <header id="header">
+            <div class="header-container-wrapper">
+                <div class="header-container">
+                    <div class="page-center">
+                        <div class="logo-wrapper">
+                            <a href="#">
+                                <img src="https://image.e.nucleusnetwork.com/lib/fe351570756406787d1076/m/1/bc4137f7-be61-4e86-ab1e-6d366590e291.jpg"
+                                    alt="Logo">
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </header>
+        <main>
+            <div class="body-container-wrapper">
+                <div class="body-container">
+                    <!--<div class="container">-->
+                    <div class="body-inner-container">
+                        <!-- Heading Start -->
+                        <div class="container">
+                            <div class="body-title-wrapper">
+                                <h1>Update your preferences
+                                </h1>
+                                <p>Update and manage your personal details and preferences below.
+                                </p>
+                                <p>You can also unsubscribe from communications by clicking on the ‘Unsubscribe’ button
+                                    at
+                                    the bottom of the page.
+                                </p>
+                            </div>
+                        </div>
+                        <!-- Heading End -->
+                        <div class="form-wrapper">
+                            <form action="%%=CLOUDPAGESURL(@processingPage)=%%" method="POST"
+                                id="preference-center-form">
+                                <input type="hidden" id="sk" name="sk" value="%%=v(@sk)=%%">
+                                <div class="section-container">
+                                    <div class="Personal Details">
+                                        <!-- What would you like to hear from us about? -->
+                                        <div class="row">
+                                            <div class="form-block title">
+                                                <div class="form-title clearfix">
+                                                    <div class="form-title-name">
+                                                        <p>Personal Details
+                                                        </p>
+                                                        <!-- <p class="sub">All fields below are required</p> -->
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <div class="form-block">
+                                                <label for="fname">First Name</label>
+                                                <input type="text" name="fname" placeholder="First Name"
+                                                    value="%%=v(@FirstName)=%%">
+                                            </div>
+                                            <div class="form-block">
+                                                <label for="lname">Last Name</label>
+                                                <input type="text" name="lname" placeholder="Last Name"
+                                                    value="%%=v(@LastName)=%%">
+                                            </div>
+                                            <div class="form-block">
+                                                <label for="email">Email Address</label>
+                                                <input type="email" name="email" placeholder="Email Address"
+                                                    value="%%=v(@EmailAddress)=%%">
+                                            </div>
+                                            <div class="form-block">
+                                                <label for="mobile">Mobile Number</label>
+                                                <input type="text" name="mobile" placeholder="Mobile Number"
+                                                    value="%%=v(@MobilePhone)=%%">
+                                            </div>
+                                            
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="section-container" id="preferences">
+                                    <div class="preferences">
+                                        <div class="row">
+                                            <div class="form-block title">
+                                                <div class="form-title clearfix">
+                                                    <div class="form-title-name">
+                                                        <p>How would you like to hear from us?
+                                                        </p>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <div class="form-block">
+                                                <label class="checkbox">
+                                                    <span class="title">Email</span>
+                                                    <input type="checkbox" class="channel-preference"
+                                                        name="contactEmail" id="contactEmail"
+                                                        %%=IIF(@HasOptedOutOfEmail==true, '' , 'checked' )=%%>
+                                                    <span class="checkmark"></span>
+                                                </label>
+                                            </div>
+                                            <div class="form-block">
+                                                <label class="checkbox">
+                                                    <span class="title">SMS</span>
+                                                    <input type="checkbox" class="channel-preference" name="contactSMS"
+                                                        id="contactSMS" %%=IIF(@NoSMS==true, '' , 'checked'
+                                                        )=%%>
+                                                    <span class="checkmark"></span>
+                                                </label>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                  <div class="section-container" id="preferences">
+                                    <div class="preferences">
+                                        <div class="row">
+                                            <div class="form-block title">
+                                                <div class="form-title clearfix">
+                                                    <div class="form-title-name">
+                                                        <p>What product would you like to hear about?
+                                                        </p>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <div class="form-block">
+                                                <label class="checkbox">
+                                                    <span class="title">Newsletter</span>
+                                                    <input type="checkbox" class="channel-preference"
+                                                        name="contactNewsletter" id="contactNewsletter"
+                                                        %%=IIF(@PrefNewsletter==true, 'checked' , '' )=%%>
+                                                    <span class="checkmark"></span>
+                                                </label>
+                                            </div>
+                                            <div class="form-block">
+                                                <label class="checkbox">
+                                                    <span class="title">Studies</span>
+                                                    <input type="checkbox" class="channel-preference" name="contactStudies"
+                                                        id="contactStudies" %%=IIF(@PrefStudies==true, 'checked' , ''
+                                                        )=%%>
+                                                    <span class="checkmark"></span>
+                                                </label>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="section-container" id="preferences">
+                                    <div class="preferences">
+                                        <div class="row">
+                                            <div class="form-block title">
+                                                <div class="form-title clearfix">
+                                                    <div class="form-title-name">
+                                                        <p>Which content/s would you like to hear about?
+                                                        </p>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <div class="form-block">
+                                                <label class="checkbox">
+                                                    <span class="title">Featured Content</span>
+                                                    <input type="checkbox" class="channel-preference"
+                                                        name="contactFeaturedContent" id="contactFeaturedContent"
+                                                        %%=IIF(@PrefFeaturedContent==true, 'checked' , '' )=%%>
+                                                    <span class="checkmark"></span>
+                                                </label>
+                                            </div>
+                                            <div class="form-block">
+                                                <label class="checkbox">
+                                                    <span class="title">Product Announcements</span>
+                                                    <input type="checkbox" class="channel-preference" name="contactProductAnnouncements"
+                                                        id="contactProductAnnouncements" %%=IIF(@PrefProductAnnouncements==true, 'checked' , ''
+                                                        )=%%>
+                                                    <span class="checkmark"></span>
+                                                </label>
+                                            </div>
+                                            <div class="form-block">
+                                                <label class="checkbox">
+                                                    <span class="title">Events</span>
+                                                    <input type="checkbox" class="channel-preference" name="contactEvents"
+                                                        id="contactEvents" %%=IIF(@PrefEvents==true, 'checked' , ''
+                                                        )=%%>
+                                                    <span class="checkmark"></span>
+                                                </label>
+                                            </div>
+                                            <div class="form-block">
+                                                <label class="checkbox">
+                                                    <span class="title">Digest News</span>
+                                                    <input type="checkbox" class="channel-preference" name="contactDigest"
+                                                        id="contactDigest" %%=IIF(@PrefDigestNews==true, 'checked' , ''
+                                                        )=%%>
+                                                    <span class="checkmark"></span>
+                                                </label>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                               <div class="section-container" id="preferences">
+                                        <div class="preferences">
+                                            <div class="radio-row">
+                                                <div class="form-block title">
+                                                    <div class="form-title clearfix">
+                                                        <div class="form-title-name">
+                                                            <p>How often would you like to hear from us?</p>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                                <div class="form-block form-block-radio">
+                                                    <label class="radio">
+                                                        <span class="title">Daily</span>
+                                                        <input type="radio" class="channel-preference" name="contactFrequency" id="contactFrequency" value="daily"
+                                                            %%=IIF(@Frequency=='daily', 'checked', '')=%%>
+                                                        <span class="checkmark"></span>
+                                                        
+                                                    </label>
+                                                </div>
+                                                <div class="form-block form-block-radio">
+                                                    <label class="radio">
+                                                        <span class="title">Weekly</span>
+                                                        <input type="radio" class="channel-preference" name="contactFrequency" id="contactFrequency" value="weekly"
+                                                            %%=IIF(@Frequency=='weekly', 'checked', '')=%%>
+                                                        <span class="checkmark"></span>
+                                                    </label>
+                                                </div>
+                                                <div class="form-block form-block-radio">
+                                                    <label class="radio">
+                                                        <span class="title">Monthly</span>
+                                                        <input type="radio" class="channel-preference" name="contactFrequency" id="contactFrequency" value="monthly"
+                                                            %%=IIF(@Frequency=='monthly', 'checked', '')=%%>
+                                                        <span class="checkmark"></span>
+                                                    </label>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                               <div class="section-container" id="preferences">
+                                        <div class="preferences">
+                                            <div class="row">
+                                                <div class="form-block title">
+                                                    <div class="form-title clearfix">
+                                                        <div class="form-title-name">
+                                                            <p>Need a break? You can select one from the options below to momentarily opt out from marketing communications:</p>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                                <div class="form-block form-block-radio">
+                                                    <label class="radio">
+                                                        <span class="title">30 Days</span>
+                                                        <input type="radio" class="channel-preference" name="breakDuration" id="breakDuration" value ="30" %%=IIF(@BreakDays==30, 'checked' , '' )=%%>
+                                                        <span class="checkmark"></span>
+                                                    </label>
+                                                </div>
+                                                <div class="form-block form-block-radio">
+                                                    <label class="radio">
+                                                        <span class="title">60 Days</span>
+                                                        <input type="radio" class="channel-preference" name="breakDuration" id="breakDuration" value ="60" %%=IIF(@BreakDays==60, 'checked' , '' )=%%>
+                                                        <span class="checkmark"></span>
+                                                    </label>
+                                                </div>
+                                                <div class="form-block form-block-radio">
+                                                    <label class="radio">
+                                                        <span class="title">90 Days</span>
+                                                        <input type="radio" class="channel-preference" name="breakDuration" id="breakDuration" value ="90" %%=IIF(@BreakDays==90, 'checked' , '' )=%%>
+                                                        <span class="checkmark"></span>
+                                                    </label>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                <div class="section-container">
+                                    <div class="row">
+                                        <div class="form-block button preferences">
+                                            <input type="submit" name="submit" value="Save My Preferences">
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="section-container bg-light" id="unsubscribe">
+                                    <div class="Unsubscribe">
+                                        <div class="row">
+                                            <div class="form-block title">
+                                                <div class="form-title clearfix">
+                                                    <div class="form-title-name">
+                                                        <p id="unsubscribe">Unsubscribe
+                                                        </p>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <div class="form-block">
+                                                <label class="checkbox">
+                                                    <span class="title">I want to unsubscribe from all
+                                                        communications.<span class="sub">This will unsubscribe you from
+                                                            all
+                                                            marketing communications. Alternatively, you may adjust your
+                                                            subscription preferences above.</span></span>
+                                                    <input type="checkbox" name="unsubAll" id="unsubAll">
+                                                    <span class="checkmark"></span>
+                                                </label>
+                                            </div>
+                                            <div class="form-block button unsubscribe">
+                                                <input type="submit" name="submit" value="Unsubscribe">
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </form>
+                        </div>
+                        <!--form-wrapper-->
+                    </div>
+                    <!--body-inner-container-->
+                </div>
+                <!--body-container-->
+            </div>
+            <!--body-container-wrapper-->
+        </main>
+        <footer id="footer">
+            <div class="footer-container-wrapper">
+                <div class="footer-container">
+                    <div class="page-center clearfix">
+                        <div class="footer-links right">
+                            <ul>
+                                <li>
+                                    <a href="#">
+                                        Privacy Policy
+                                    </a>
+                                </li>
+                                <li>
+                                    <a href="#">
+                                        Terms &amp; Conditions
+                                    </a>
+                                </li>
+                            </ul>
+                        </div>
+                        <div class="footer-links left">
+                            <ul>
+                                <li>
+                                    <a>
+                                        © 2022 Nucleus Network
+                                    </a>
+                                </li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </footer>
+    </body>
+    <!-- jquery and validate -->
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-validate/1.19.3/jquery.validate.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-validate/1.19.3/additional-methods.min.js"></script>
+    <!-- PC js -->
+    <script src="%%=CLOUDPAGESURL(@pageScript)=%%"></script>
+
+    </html>

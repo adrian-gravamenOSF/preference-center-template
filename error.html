@@ -1,0 +1,111 @@
+<!--
+%%[
+/* Look up relevant page assets */
+SET @pageStyles = LookUp('Preference_Centre_Assets', 'Id', 'Asset', 'CSS')
+SET @csp = LookUp('Preference_Centre_Assets', 'Id', 'Asset', 'CSP')
+
+/* check for specific error message */
+SET @msg = REQUESTPARAMETER('msg')
+
+IF NOT EMPTY(@msg) THEN
+ SET @message = @msg
+ELSE
+ SET @message = "Oops, something went wrong."
+ENDIF
+]%%
+-->
+<!DOCTYPE html>
+
+<!-- CSP settings content block -->
+%%=ContentBlockById(@csp)=%%
+
+<html>
+
+<head>
+    <title>Error | Something went wrong</title>
+    <!-- PC styles -->
+    <link rel="stylesheet" href="%%=CLOUDPAGESURL(@pageStyles)=%%">
+    <link rel="icon" href="https://via.placeholder.com/100x100.png?text=PC" sizes="32x32" />
+    <link
+        href="https://fonts.googleapis.com/css?family=Roboto:100,100i,300,300i,400,400i,500,500i,700,700i,900,900i&display=swap"
+        rel="stylesheet">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style>
+        .pad-t-50 {
+            padding-top: 50px;
+        }
+    </style>
+</head>
+
+<body class="thank-you">
+    <header id="header">
+        <div class="header-container-wrapper">
+            <div class="header-container">
+                <div class="page-center">
+                    <div class="logo-wrapper">
+                        <a href="#">
+                            <img src="https://image.s6.sfmc-content.com/lib/fe8c12737265037a71/m/1/bd54fe35-14a3-48d4-8113-d945b193d58e.svg"
+                                alt="Logo">
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </header>
+    <main>
+        <div class="body-container-wrapper">
+            <div class="body-container">
+                <div class="container">
+                    <div class="body-inner-container">
+                        <div class="error-wrapper">
+                            <h1>%%=v(@message)=%%</h1>
+                            <p>
+                                <span>There was an error processing your request.</span>
+                                <span>Please go back and try again.</span>
+                            </p>
+                            <a href="#">Go Back</a>
+                        </div>
+
+                    </div>
+                    <!--body-inner-container-->
+                </div>
+                <!--container-->
+            </div>
+            <!--body-container-->
+        </div>
+        <!--body-container-wrapper-->
+    </main>
+    <footer id="footer">
+        <div class="footer-container-wrapper">
+            <div class="footer-container">
+                <div class="page-center clearfix">
+                    <div class="footer-links right">
+                        <ul>
+                            <li>
+                                <a href="#">
+                                    Privacy Policy
+                                </a>
+                            </li>
+                            <li>
+                                <a href="#">
+                                    Terms &amp; Conditions
+                                </a>
+                            </li>
+                        </ul>
+                    </div>
+                    <div class="footer-links left">
+                        <ul>
+                            <li>
+                                <a>
+                                    © 2022 Your Company Name
+                                </a>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </footer>
+</body>
+
+</html>

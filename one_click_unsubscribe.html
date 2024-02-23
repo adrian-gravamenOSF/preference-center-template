@@ -1,0 +1,174 @@
+<!--
+%%[
+/* Look up relevant page assets and DEs */
+SET @pageStyles = LookUp('Preference_Centre_Assets', 'Id', 'Asset', 'CSS')
+SET @csp = LookUp('Preference_Centre_Assets', 'Id', 'Asset', 'CSP')
+SET @errorPage = LookUp('Preference_Centre_Assets', 'Id', 'Asset', 'ErrorPage')
+SET @processingPage = LookUp('Preference_Centre_Assets', 'Id', 'Asset', 'OneClickProcessing')
+
+SET @SubscriberDE = LookUp('Preference_Centre_Assets', 'Id', 'Asset', 'SubscriberDE')
+
+/* decrypt token */
+set @password = LookUp('Preference_Centre_Creds', 'Value', 'Name', 'Password')
+set @salt = LookUp('Preference_Centre_Creds', 'Value', 'Name', 'Salt')
+set @initVector = LookUp('Preference_Centre_Creds', 'Value', 'Name', 'InitVector')
+
+SET @encAES = RequestParameter('token') 
+
+IF EMPTY(@encAES) THEN
+ Redirect(CloudPagesURL(@errorPage, 'msg', 'Subscriber not found.'))
+ENDIF
+
+SET @padding = Subtract(4,Mod(Length(@encAES),4))
+SET @encrypted = @encAES
+
+IF @padding < 4 THEN 
+  FOR @i = 1 to @padding DO
+    SET @encrypted = Concat(@encrypted,"=")
+  NEXT @i 
+ENDIF
+    
+SET @decrypted = DecryptSymmetric(Base64Decode(@encrypted),"AES",@password, @null, @salt, @null, @initVector)
+
+
+/* set subscriber key as decrypted token */
+ SET @sk = @decrypted
+ 
+ SET @rows = LookupRows(@SubscriberDE, 'ContactKey',  @sk)
+
+ IF ROWCOUNT(@rows) == 0 THEN
+  Redirect(CloudPagesURL(@errorPage, 'msg', 'Subscriber not found.'))
+ ENDIF
+
+ IF ROWCOUNT(@rows) > 0 THEN
+  SET @DataRow = Row(@rows,1)
+
+   SET @EmailAddress = Field(@DataRow,'EmailAddress')
+
+ ENDIF
+]%%
+-->
+
+<!DOCTYPE html>
+
+<!-- CSP settings content block -->
+%%=ContentBlockById(@csp)=%%
+
+<html>
+
+<head>
+    <title>Preference Centre
+    </title>
+    <!-- PC Styles -->
+    <link rel="stylesheet" href="%%=CLOUDPAGESURL(@pageStyles)=%%">
+    <link rel="icon" href="https://via.placeholder.com/100x100.png?text=PC" sizes="32x32" />
+    <link
+        href="https://fonts.googleapis.com/css?family=Roboto:100,100i,300,300i,400,400i,500,500i,700,700i,900,900i&display=swap"
+        rel="stylesheet">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style>
+        .pad-t-50 {
+            padding-top: 50px;
+        }
+    </style>
+
+</head>
+
+<body>
+    <header id="header">
+        <div class="header-container-wrapper">
+            <div class="header-container">
+                <div class="page-center">
+                    <div class="logo-wrapper">
+                        <a href="#">
+                            <img src="https://image.s6.sfmc-content.com/lib/fe8c12737265037a71/m/1/bd54fe35-14a3-48d4-8113-d945b193d58e.svg"
+                                alt="Logo">
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </header>
+    <main>
+        <div class="body-container-wrapper">
+            <div class="body-container">
+                <div class="body-inner-container">
+                    <div class="form-wrapper">
+                        <form action="%%=CLOUDPAGESURL(@processingPage)=%%" method="POST" id="unsubscribe-form">
+                            <input type="hidden" id="sk" name="sk" value="%%=v(@sk)=%%">
+
+                            <div class="section-container bg-light" id="unsubscribe">
+                                <div class="Unsubscribe">
+                                    <div class="row">
+                                        <div class="form-block title">
+                                            <div class="form-title clearfix">
+                                                <div class="form-title-name">
+                                                    <p id="unsubscribe">Unsubscribe
+                                                    </p>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <div class="form-block">
+                                            <span class="title">I want to unsubscribe from all
+                                                communications.</span>
+                                        </div>
+                                        <div class="form-block">
+                                            <label for="email">Email Address</label>
+                                            <input type="email" name="email" placeholder="Email Address"
+                                                value="%%=v(@EmailAddress)=%%" readonly>
+                                        </div>
+                                        <div class="form-block button unsubscribe">
+                                            <input type="submit" name="submit" value="Unsubscribe">
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </form>
+                    </div>
+                    <!--form-wrapper-->
+                </div>
+                <!--body-inner-container-->
+            </div>
+            <!--body-container-->
+        </div>
+        <!--body-container-wrapper-->
+    </main>
+    <footer id="footer">
+        <div class="footer-container-wrapper">
+            <div class="footer-container">
+                <div class="page-center clearfix">
+                    <div class="footer-links right">
+                        <ul>
+                            <li>
+                                <a href="#">
+                                    Privacy Policy
+                                </a>
+                            </li>
+                            <li>
+                                <a href="#">
+                                    Terms &amp; Conditions
+                                </a>
+                            </li>
+                        </ul>
+                    </div>
+                    <div class="footer-links left">
+                        <ul>
+                            <li>
+                                <a>
+                                    © 2022 Your Company Name
+                                </a>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </footer>
+</body>
+<!-- jquery and validate -->
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-validate/1.19.3/jquery.validate.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-validate/1.19.3/additional-methods.min.js"></script>
+
+</html>

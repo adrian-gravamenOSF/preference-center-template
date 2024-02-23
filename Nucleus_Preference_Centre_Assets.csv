@@ -1,0 +1,12 @@
+Asset,Id,Type,Description
+SubscriberDE,8C452603-97FD-4E6F-9F07-C13920BC70B4,Data Extension,Name of Master DE
+ThankYouPage,6698,CloudPage,Page ID of Thank You/Confirmation page
+ErrorPage,6696,CloudPage,Page ID of Error page
+UnsubscribePage,6697,CloudPage,Page ID of Unsubscribe confirmation page
+OneClickUnsub,6701,CloudPage,Page ID of One-click unsub page
+CSS,6693,Code Resource,Page ID of preference centre styles code resource
+JS,6694,Code Resource,Page ID of preference centre javascript code resource
+PreferenceProcessing,6699,CloudPage,Page ID of preference centre processing page
+OneClickProcessing,6700,CloudPage,Page ID of one-click unsub processing page
+PreferenceCentreMain,6695,CloudPage,Page ID of preference centre main page
+CSP,bc792cf5-b46e-470f-86ce-7f002b81bdf9,Content Block,ID of Content Block containing Content Security Policy settings

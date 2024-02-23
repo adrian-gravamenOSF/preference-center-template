@@ -1,0 +1,271 @@
+%%[
+SET @IsDebug = false
+SET @updateSFObject = true
+
+SET @SubscriberDE = LookUp('Preference_Centre_Assets', 'Id', 'Asset', 'SubscriberDE')
+
+/* Page IDs of confirmation and error pages */
+SET @thanksPage = LookUp('Preference_Centre_Assets', 'Id', 'Asset', 'ThankYouPage')
+SET @unsubscribePage = LookUp('Preference_Centre_Assets', 'Id', 'Asset', 'UnsubscribePage')
+SET @errorPage = LookUp('Preference_Centre_Assets', 'Id', 'Asset', 'ErrorPage')
+
+SET @sk = RequestParameter('sk')
+SET @submitValue= RequestParameter('submit')
+SET @updatedAt = Format(SystemDateToLocalDate(NOW()), "yyyy-MM-ddThh:mm:ssZ")
+
+/* personal details fields */
+SET @FirstName = RequestParameter('fname')
+SET @LastName = RequestParameter('lname')
+SET @EmailAddress = RequestParameter('email')
+SET @MobilePhone = RequestParameter('mobile')
+
+/* Retrieve AccountId*/
+SET @AccountId = Lookup('Account_Salesforce','Id', 'PersonContactId', @sk)
+
+/* channel preferences */
+SET @HasOptedOutOfEmail = IIF(RequestParameter('contactEmail') == 'on','true','false')
+SET @NoSMS = IIF(RequestParameter('contactSMS') == 'on','true','false')
+SET @PrefNewsletter = IIF(RequestParameter('contactNewsletter') == 'on','true','false')
+SET @PrefStudies = IIF(RequestParameter('contactStudies') == 'on','true','false')
+SET @PrefFeaturedContent = IIF(RequestParameter('contactFeaturedContent') == 'on','true','false')
+SET @PrefProductAnnouncements = IIF(RequestParameter('contactProductAnnouncements') == 'on','true','false')
+SET @PrefEvents = IIF(RequestParameter('contactEvents') == 'on','true','false')
+SET @PrefDigestNews = IIF(RequestParameter('contactDigest') == 'on','true','false')
+SET @BreakDays = RequestParameter('breakDuration')
+SET @Frequency = RequestParameter('contactFrequency')
+
+/* unsub All */
+SET @unsubscribe = IIF(RequestParameter('unsubAll') == 'on','true','false')
+
+IF EMPTY(@sk) THEN
+   SET @sk = Lookup(@SubscriberDE,'ContactKey','EmailAddress', @EmailAddress)
+ENDIF
+
+IF EMPTY(@sk) THEN
+   Redirect(CloudPagesURL(@errorPage, 'msg', 'Subscriber not found.'))
+ENDIF
+
+/* SET whether updating or unsubscribing */
+IF @unsubscribe == true THEN
+   SET @isSub = false
+ELSE
+   SET @isSub = true
+ENDIF
+
+SET @sub = CreateObject('Subscriber')
+SetObjectProperty(@sub,'SubscriberKey', @sk)
+SetObjectProperty(@sub,'EmailAddress', @EmailAddress)
+IF @HasOptedOutOfEmail == 'true' THEN
+   SetObjectProperty(@sub,'Status', 'Active')
+ELSE
+   SetObjectProperty(@sub,'Status', 'Unsubscribed')
+ENDIF
+SET @options = CreateObject('UpdateOptions')
+SET @save = CreateObject('SaveOption')
+SetObjectProperty(@save,'SaveAction','UpdateAdd')
+SetObjectProperty(@save,'PropertyName','*')
+AddObjectArrayItem(@options,'SaveOptions', @save)
+SET @ll_statusCode = InvokeUpdate(@sub, @ll_statusMsg, @update_sub_errorcode, @options)
+
+IF NOT EMPTY(@sk) AND @isSub == false THEN
+   /* Unsubscribe Subscriber in ET All Subscribers */
+   SET @jid = AttributeValue('jobid')
+   SET @listid = AttributeValue('listid')
+   SET @batchid = AttributeValue('_JobSubscriberBatchID')
+   var @lue
+   var @lue_prop
+   var @lue_statusCode
+   var @overallStatus
+   var @requestId
+   var @Response
+   var @Status
+   var @Error
+   /* create a request to inject an unsub event into the LogUnsubEvent platform table */
+   SET @lue = CreateObject('ExecuteRequest')
+   SetObjectProperty(@lue,'Name','LogUnsubEvent')
+   /* 1. define and associate Subscriber Key to the request */
+   SET @lue_prop = CreateObject('APIProperty')
+   SetObjectProperty(@lue_prop, 'Name', 'SubscriberKey')
+   SetObjectProperty(@lue_prop, 'Value', @sk)
+   AddObjectArrayItem(@lue, 'Parameters', @lue_prop)
+   /* 2. define and associate JobID to the request */
+   IF NOT EMPTY(@jid) THEN
+      SET @lue_prop = CreateObject('APIProperty')
+      SetObjectProperty(@lue_prop, 'Name', 'JobID')
+      SetObjectProperty(@lue_prop, 'Value', @jid)
+      AddObjectArrayItem(@lue, 'Parameters', @lue_prop)
+   ENDIF
+   /* 3. define and associate ListID to the request */
+   IF NOT EMPTY(@listid) THEN
+      SET @lue_prop = CreateObject('APIProperty')
+      SetObjectProperty(@lue_prop, 'Name', 'ListID')
+      SetObjectProperty(@lue_prop, 'Value', @listid)
+      AddObjectArrayItem(@lue, 'Parameters', @lue_prop)
+   ENDIF
+   /* 4. define and associate BatchID to the request */
+   IF NOT EMPTY(@batchid) THEN
+      SET @lue_prop = CreateObject('APIProperty')
+      SetObjectProperty(@lue_prop, 'Name', 'BatchID')
+      SetObjectProperty(@lue_prop, 'Value', @batchid)
+      AddObjectArrayItem(@lue, 'Parameters', @lue_prop)
+   ENDIF
+   /* 5. define and associate unsub reason to the request */
+   SET @lue_prop = CreateObject('APIProperty')
+   SetObjectProperty(@lue_prop, 'Name', 'Reason')
+   SetObjectProperty(@lue_prop, 'Value', @UnsubscribeReason)
+   AddObjectArrayItem(@lue, 'Parameters', @lue_prop)
+   /* finally, you invoke the request */
+   SET @lue_statusCode = InvokeExecute(@lue, @overallStatus, @requestId)
+   /* extract messages from the response */
+   SET @Response = Row(@lue_statusCode, 1)
+   SET @Status = Field(@Response,'StatusMessage')
+   SET @StatusCode = Field(@Response,'StatusCode')
+   SET @Error = Field(@Response,'ErrorCode')
+ENDIF
+
+/* Update Master Data Extension */
+
+IF @HasOptedOutOfEmail == 'true' THEN 
+   SET @UpdateEmailDE = 'false'
+ELSEIF @HasOptedOutOfEmail == 'false' THEN
+   SET @UpdateEmailDE = 'true'
+ENDIF
+
+IF @NoSMS == 'true' THEN 
+   SET @UpdateSMSDE = 'false'
+ELSEIF @NoSMS == 'false' THEN
+   SET @UpdateSMSDE = 'true'
+ENDIF
+
+SET @rowsUpdated  = UpsertData(@SubscriberDE, 1, 'ContactKey', @sk,
+   'FirstName', @FirstName,
+   'LastName', @LastName,
+   'EmailAddress', @EmailAddress,
+   'MobilePhone', @MobilePhone,
+   'HasOptedOutOfEmail', @UpdateEmailDE,
+   'NO_SMS__c', @UpdateSMSDE,
+   'LastUpdated', @updatedAt,
+   'PrefNewsletter', @PrefNewsletter,
+   'PrefStudies', @PrefStudies,
+   'PrefFeaturedContent', @PrefFeaturedContent,
+   'PrefProductAnnouncements', @PrefProductAnnouncements,
+   'PrefEvents', @PrefEvents,
+   'PrefDigestNews', @PrefDigestNews,
+   'BreakDays', @BreakDays,
+   'Frequency', @Frequency
+)
+
+/* retrieve and update salesforce object */
+
+IF @HasOptedOutOfEmail == 'true' THEN 
+   SET @sfUpdateEmail = 'false'
+ELSEIF @HasOptedOutOfEmail == 'false' THEN
+   SET @sfUpdateEmail = 'true'
+ENDIF
+
+IF @NoSMS == 'true' THEN 
+   SET @sfUpdateSMS = 'false'
+ELSEIF @NoSMS == 'false' THEN
+   SET @sfUpdateSMS = 'true'
+ENDIF
+
+SET @rs = RetrieveSalesforceObjects('Contact', 'FirstName, LastName, Email', 'Id', '=', @sk)
+SET @rowCount = RowCount(@rs)
+
+IF @rowCount > 0 THEN
+   UpdateSingleSalesforceObject(
+      'Contact', @sk, 
+      'FirstName', @FirstName, 
+      'LastName', @LastName, 
+      'Email', @EmailAddress, 
+      'HasOptedOutOfEmail', @sfUpdateEmail
+   )
+ENDIF
+
+SET @accountRows = RetrieveSalesforceObjects("Account", "NO_SMS__c", "Id", "=", @AccountId)
+SET @accountRowsCount = RowCount(@accountRows)
+
+IF @accountRowsCount > 0 THEN
+   SET @updateAccountRecord = UpdateSingleSalesforceObject(
+      "Account", @AccountId,
+      "NO_SMS__c", @sfUpdateSMS
+   )
+ENDIF
+
+IF @IsDebug != true THEN
+   IF @rowsUpdated > 0 THEN
+      IF @submitValue == 'Unsubscribe' THEN
+         /* Update Master Data Extension */
+         SET @commsUpdateDE = 'true'
+         SET @globalUnsub = 'false'
+         SET @rowsUpdated  = UpsertData(@SubscriberDE, 1, 'ContactKey', @sk,
+            'HasOptedOutOfEmail', @commsUpdateDE,
+            'NO_SMS__c', @commsUpdateDE,
+            'PrefNewsletter', @globalUnsub,
+            'PrefStudies', @globalUnsub,
+            'PrefFeaturedContent', @globalUnsub,
+            'PrefProductAnnouncements', @globalUnsub,
+            'PrefEvents', @globalUnsub,
+            'PrefDigestNews', @globalUnsub,
+            'BreakDays', '',
+            'Frequency', ''
+         )
+         /* retrieve and update salesforce object */
+
+         SET @rs = RetrieveSalesforceObjects('Contact', 'FirstName, LastName, Email', 'Id', '=', @sk)
+         SET @rowCount = RowCount(@rs)
+
+         IF @rowCount > 0 THEN
+            UpdateSingleSalesforceObject(
+               'Contact', @sk, 
+               'FirstName', @FirstName, 
+               'LastName', @LastName, 
+               'Email', @EmailAddress, 
+               'HasOptedOutOfEmail', 'true'
+            )
+         ENDIF
+
+         SET @accountRows = RetrieveSalesforceObjects("Account", "NO_SMS__c", "Id", "=", @AccountId)
+         SET @accountRowsCount = RowCount(@accountRows)
+
+         IF @accountRowsCount > 0 THEN
+            SET @updateAccountRecord = UpdateSingleSalesforceObject(
+               "Account", @AccountId,
+               "NO_SMS__c", 'true'
+            )
+         ENDIF
+         Redirect(CloudPagesURL(@unsubscribePage))
+      ELSE
+         Redirect(CloudPagesURL(@thanksPage, 'HasOptedOutOfEmail', @HasOptedOutOfEmail))
+      ENDIF
+   ELSE
+      Redirect(CloudPagesURL(@errorPage))
+   ENDIF
+ENDIF
+]%%
+
+<!doctype html>
+<html>
+   <head>
+      <meta charset="utf-8">
+      <title></title>
+      <meta name="description" content="">
+      <meta name="viewport" content="width=device-width, initial-scale=1">
+   </head>
+   <body>
+      <div>
+         sk: %%=v(@sk)=%% <br/>
+         First Name: %%=v(@FirstName)=%% <br/>
+         Last Name: %%=v(@LastName)=%% <br/>
+         Email: %%=v(@EmailAddress)=%% <br/>
+         Mobile: %%=v(@MobilePhone)=%% <br/>
+         <br/>
+         EmailIsEmailSubscribedSub: %%=v(@HasOptedOutOfEmail)=%% <br/>
+         PhoneIsSmsSubscribedSub: %%=v(@NoSMS)=%% <br/>
+         IsPhoneSubscribed: %%=v(@IsPhoneSubscribed)=%% <br/><br/>
+         StatusCode: %%=v(@StatusCode)=%% <br/>
+         Status: %%=v(@Status)=%% <br/>
+         Error: %%=v(@Error)=%% <br/>
+      </div>
+   </body>
+</html>
